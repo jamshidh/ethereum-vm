@@ -32,20 +32,15 @@ import Blockchain.Data.BlockDB
 import Blockchain.Data.Code
 import Blockchain.Data.DataDefs
 import Blockchain.Data.DiffDB
-import Blockchain.Data.GenesisBlock
 import Blockchain.Data.Transaction
 import Blockchain.Data.TransactionResult
 import qualified Blockchain.Database.MerklePatricia as MP
 import Blockchain.DB.DetailsDB
 import Blockchain.DB.ModifyStateDB
 import Blockchain.DB.StateDB
-import Blockchain.DB.StorageDB
-import Blockchain.DBM
 import Blockchain.Constants
-import Blockchain.ExtDBs
 import Blockchain.ExtWord
 import Blockchain.Options
-import Blockchain.SHA
 import Blockchain.Verifier
 import Blockchain.VM
 import Blockchain.VM.Code

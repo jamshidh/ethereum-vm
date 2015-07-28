@@ -16,7 +16,6 @@ import Control.Monad.Trans.Resource
 import Control.Monad.State
 import Text.PrettyPrint.ANSI.Leijen hiding ((<$>), (</>))
 
-import Blockchain.DBM
 import Blockchain.Data.Address
 import Blockchain.Data.AddressStateDB
 import qualified Blockchain.Database.MerklePatricia as MPDB
