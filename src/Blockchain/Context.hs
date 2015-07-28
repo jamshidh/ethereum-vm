@@ -14,18 +14,19 @@ module Blockchain.Context (
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Resource
 import Control.Monad.State
-import qualified Data.ByteString as B
 import Text.PrettyPrint.ANSI.Leijen hiding ((<$>), (</>))
 
 import Blockchain.DBM
-import Blockchain.Data.Peer
 import Blockchain.Data.Address
 import Blockchain.Data.AddressStateDB
 import qualified Blockchain.Database.MerklePatricia as MPDB
+import Blockchain.DB.BlockDB
 import Blockchain.DB.CodeDB
+import Blockchain.DB.DetailsDB
 import Blockchain.DB.HashDB
+import Blockchain.DB.SQLDB
+import Blockchain.DB.StateDB
 import Blockchain.Options
-import Blockchain.SHA
 
 --import Debug.Trace
 

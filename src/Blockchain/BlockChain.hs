@@ -37,6 +37,7 @@ import Blockchain.Data.Transaction
 import Blockchain.Data.TransactionResult
 import qualified Blockchain.Database.MerklePatricia as MP
 import Blockchain.DB.ModifyStateDB
+import Blockchain.DB.StorageDB
 import Blockchain.DBM
 import Blockchain.Constants
 import Blockchain.ExtDBs
