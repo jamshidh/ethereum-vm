@@ -36,7 +36,9 @@ import Blockchain.Data.GenesisBlock
 import Blockchain.Data.Transaction
 import Blockchain.Data.TransactionResult
 import qualified Blockchain.Database.MerklePatricia as MP
+import Blockchain.DB.DetailsDB
 import Blockchain.DB.ModifyStateDB
+import Blockchain.DB.StateDB
 import Blockchain.DB.StorageDB
 import Blockchain.DBM
 import Blockchain.Constants
@@ -306,7 +308,7 @@ x ?! err = maybe (left err) return $ x
 
 replaceBestIfBetter::(BlockDataRefId, Block)->ContextM ()
 replaceBestIfBetter (blkDataId, b) = do
-  best <- getBestBlock
+  best <- getBestBlock flags_altGenBlock
   if blockDataNumber (blockBlockData best) >= n
     then return ()
     else do
