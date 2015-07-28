@@ -26,34 +26,24 @@ executable ethereum-vm
                  , bytestring
                  , containers
                  , cryptohash
-                 , crypto-pubkey
-                 , crypto-pubkey-types
-                 , crypto-random
-                 , data-default
-                 , directory
                  , either
-                 , entropy
+                 , esqueleto
                  , ethereum-data-sql
                  , ethereum-encryption
                  , ethereum-merkle-patricia-db
                  , ethereum-rlp
                  , ethereum-util
-                 , filepath
                  , haskoin
                  , hflags
-                 , hminer
-                 , leveldb-haskell
-                 , mmap
                  , mtl
-                 , network
-                 , nibblestring
+                 , persistent
+                 , persistent-postgresql
                  , resourcet
                  , SHA2
                  , time
                  , transformers
                  , vector
                  , ansi-wl-pprint
-                 , ethereum-client-haskell
     main-is: Main.hs
     ghc-options: -Wall -O2
     buildable: True
