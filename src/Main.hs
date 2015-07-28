@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, FlexibleContexts #-}
 
+import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Resource
@@ -45,14 +46,19 @@ main = do
                            []) $ do
           b1 <- getGenesisBlockHash flags_altGenBlock
           liftIO $ putStrLn $ "genesis block hash = " ++ show b1
-          childrenHashes <- getChildrenHashes b1
-          liftIO $ putStrLn $ "child block hash = " ++ show childrenHashes
-          Just block <- getBlock (head childrenHashes)
-          liftIO $ putStrLn $ "children of genesis block: " ++ format block
-          addBlock False block
+          insertBlockRecursivly b1
           return ()
   return ()
 
+insertBlockRecursivly::SHA->ContextM ()
+insertBlockRecursivly hash = do
+  childrenHashes <- getChildrenHashes hash
+  liftIO $ putStrLn $ "child block hash = " ++ show childrenHashes
+  forM_ childrenHashes $ \childHash -> do
+    Just block <- getBlock childHash
+    liftIO $ putStrLn $ "children of genesis block: " ++ format block
+    addBlock False block
+    insertBlockRecursivly childHash
 
 
 getChildrenHashes::(HasSQLDB m, MonadResource m, MonadBaseControl IO m)=>SHA->m [SHA]
