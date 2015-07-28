@@ -9,7 +9,6 @@ import Blockchain.BlockChain
 import Blockchain.Context
 import Blockchain.Data.BlockDB
 import Blockchain.Data.DataDefs
-import Blockchain.Data.GenesisBlock
 import Blockchain.DB.DetailsDB
 import Blockchain.DB.SQLDB
 import Blockchain.DBM
@@ -18,34 +17,25 @@ import Blockchain.Options
 import Blockchain.SHA
 
 import qualified Database.Persist.Postgresql as SQL
-import qualified Database.Persist.Sql as SQL
 import qualified Database.Esqueleto as E
+import Database.Esqueleto.Internal.Language 
 
-getBlockChildren::(HasSQLDB m, MonadResource m, MonadBaseControl IO m)=>SHA->m (Maybe Block)
-getBlockChildren h = do
-  db <- getSQLDB
-  entBlkL <- runResourceT $
+{-
+  runResourceT $
     flip SQL.runSqlPool db $ do
-      E.select $ E.from $ \(bdRef, block) -> do
-        E.where_ (bdRef E.^. BlockDataRefParentHash E.==. E.val h )
-        return block          
+      [SQL.Entity _ qq] <- SQL.selectList [BlockDataRefParentHash SQL.==. h] [SQL.LimitTo 1]
 
+      return $ Just qq
+-}
 
-  case entBlkL of
-    [] -> return Nothing
-    lst -> return $ Just . E.entityVal . head $ lst
-
-
-
-
-
-
+main::IO ()
 main = do
-  args <- $initHFlags "The Ethereum Haskell Peer"
+  _ <- $initHFlags "The Ethereum Haskell Peer"
 
-  runResourceT $ do
+  _ <-
+    runResourceT $ do
       dbs <- openDBs "h"
-      _ <- flip runStateT (Context
+      flip runStateT (Context
                            (stateDB' dbs)
                            (hashDB' dbs)
                            (blockDB' dbs)
@@ -53,12 +43,27 @@ main = do
                            (sqlDB' dbs)
                            (detailsDB' dbs)
                            []) $ do
-        b1 <- getGenesisBlockHash flags_altGenBlock
-        liftIO $ putStrLn $ "genesis block hash = " ++ show b1
-        Just block <- getBlockChildren b1
-        liftIO $ putStrLn $ "children of genesis block: " ++ format block
-        addBlock False block
+          b1 <- getGenesisBlockHash flags_altGenBlock
+          liftIO $ putStrLn $ "genesis block hash = " ++ show b1
+          childrenHashes <- getChildrenHashes b1
+          liftIO $ putStrLn $ "child block hash = " ++ show childrenHashes
+          Just block <- getBlock (head childrenHashes)
+          liftIO $ putStrLn $ "children of genesis block: " ++ format block
+          addBlock False block
+          return ()
+  return ()
 
---select * from block_data_ref where parent_hash like 'fd4af92a79c7fc2fd8bf0d342f2e832e1d4f485c85b9152d2039e03bc604fdca'
 
-      return ()
+
+getChildrenHashes::(HasSQLDB m, MonadResource m, MonadBaseControl IO m)=>SHA->m [SHA]
+getChildrenHashes h = do
+  db <- getSQLDB
+  hashVals <-
+    runResourceT $
+    flip SQL.runSqlPool db $ 
+    E.select $
+    E.from $ \bdRef -> do
+      E.where_ (bdRef E.^. BlockDataRefParentHash E.==. E.val h )
+      return $ bdRef E.^. BlockDataRefHash
+
+  return [x|Value x <- hashVals]

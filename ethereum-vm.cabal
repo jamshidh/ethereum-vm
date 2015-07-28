@@ -36,7 +36,6 @@ executable ethereum-vm
                  , haskoin
                  , hflags
                  , mtl
-                 , persistent
                  , persistent-postgresql
                  , resourcet
                  , SHA2
