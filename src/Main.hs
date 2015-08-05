@@ -42,9 +42,8 @@ main = do
                            undefined
                            (codeDB' dbs)
                            (sqlDB' dbs)
-                           (detailsDB' dbs)
                            []) $ do
-          b1 <- getGenesisBlockHash flags_altGenBlock
+          b1 <- getGenesisBlockHash
           liftIO $ putStrLn $ "genesis block hash = " ++ show b1
           insertBlockRecursivly b1
           return ()

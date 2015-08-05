@@ -21,7 +21,6 @@ import Blockchain.Data.AddressStateDB
 import qualified Blockchain.Database.MerklePatricia as MPDB
 import Blockchain.DB.BlockDB
 import Blockchain.DB.CodeDB
-import Blockchain.DB.DetailsDB
 import Blockchain.DB.HashDB
 import Blockchain.DB.SQLDB
 import Blockchain.DB.StateDB
@@ -37,7 +36,6 @@ data Context =
     contextBlockDB::BlockDB,
     contextCodeDB::CodeDB,
     contextSQLDB::SQLDB,
-    contextDetailsDB::DetailsDB,
     vmTrace::[String]
     }
 
@@ -67,9 +65,6 @@ instance HasCodeDB ContextM where
 
 instance HasSQLDB ContextM where
   getSQLDB = fmap contextSQLDB get
-
-instance HasDetailsDB ContextM where
-  getDetailsDB = fmap contextDetailsDB get
 
 getDebugMsg::ContextM String
 getDebugMsg = do

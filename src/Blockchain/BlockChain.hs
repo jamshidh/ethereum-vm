@@ -303,11 +303,10 @@ x ?! err = maybe (left err) return $ x
 
 replaceBestIfBetter::(BlockDataRefId, Block)->ContextM ()
 replaceBestIfBetter (blkDataId, b) = do
-  best <- getBestBlock flags_altGenBlock
+  best <- getBestBlock 
   if blockDataNumber (blockBlockData best) >= n
     then return ()
     else do
-    detailsDBPut "best" (BL.toStrict $ encode $ blockHash b)
     let oldStateRoot = blockDataStateRoot (blockBlockData best)
         newStateRoot = blockDataStateRoot (blockBlockData b)
     sqlDiff blkDataId n oldStateRoot newStateRoot
