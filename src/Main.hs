@@ -39,7 +39,7 @@ main = do
       flip runStateT (Context
                            (stateDB' dbs)
                            (hashDB' dbs)
-                           (blockDB' dbs)
+                           undefined
                            (codeDB' dbs)
                            (sqlDB' dbs)
                            (detailsDB' dbs)
