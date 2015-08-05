@@ -4,12 +4,17 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Resource
+import qualified Database.LevelDB as DB
 import HFlags
+import System.Directory
+import System.FilePath
 
 import Blockchain.BlockChain
+import Blockchain.Constants
 import Blockchain.Context
 import Blockchain.Data.BlockDB
 import Blockchain.Data.DataDefs
+import qualified Blockchain.Database.MerklePatricia as MP
 import Blockchain.DB.DetailsDB
 import Blockchain.DB.SQLDB
 import Blockchain.DBM
@@ -36,11 +41,16 @@ main = do
   _ <-
     runResourceT $ do
       dbs <- openDBs "h"
+      homeDir <- liftIO getHomeDirectory                     
+      sdb <- DB.open (homeDir </> dbDir "h" ++ stateDBPath)
+             DB.defaultOptions{DB.createIfMissing=True, DB.cacheSize=1024}
+      let hdb = sdb
+          cdb = sdb
       flip runStateT (Context
-                           (stateDB' dbs)
-                           (hashDB' dbs)
+                           MP.MPDB{MP.ldb=sdb}
+                           hdb
                            undefined
-                           (codeDB' dbs)
+                           cdb
                            (sqlDB' dbs)
                            []) $ do
           b1 <- getGenesisBlockHash

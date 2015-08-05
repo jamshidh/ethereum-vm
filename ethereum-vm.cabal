@@ -26,6 +26,7 @@ executable ethereum-vm
                  , bytestring
                  , containers
                  , cryptohash
+                 , directory
                  , either
                  , esqueleto
                  , ethereum-data-sql
@@ -33,8 +34,10 @@ executable ethereum-vm
                  , ethereum-merkle-patricia-db
                  , ethereum-rlp
                  , ethereum-util
+                 , filepath
                  , haskoin
                  , hflags
+                 , leveldb-haskell
                  , mtl
                  , persistent-postgresql
                  , resourcet
