@@ -66,7 +66,8 @@ addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
       "Block will not be added now, but will be requested and added later"
     Just parentBlock -> do
       setStateDBStateRoot $ blockDataStateRoot $ blockBlockData parentBlock
-      let rewardBase = 1500 * finney
+      --let rewardBase = 1500 * finney
+      let rewardBase = 5000 * finney
       s1 <- addToBalance (blockDataCoinbase bd) rewardBase
       when (not s1) $ error "addToBalance failed even after a check in addBlock"
 
