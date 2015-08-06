@@ -61,7 +61,7 @@ addBlocks isBeingCreated blocks =
 addBlock::Bool->Block->ContextM ()
 addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
   liftIO $ putStrLn $ "Inserting block #" ++ show (blockDataNumber bd) ++ " (" ++ show (pretty $ blockHash b) ++ ")."
-  maybeParent <- getBlock $ blockDataParentHash bd
+  maybeParent <- getBlockLite $ blockDataParentHash bd
   case maybeParent of
     Nothing ->
       liftIO $ putStrLn $ "Missing parent block in addBlock: " ++ show (pretty $ blockDataParentHash bd) ++ "\n" ++

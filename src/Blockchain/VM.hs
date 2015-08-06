@@ -160,7 +160,7 @@ getBlockWithNumber::Integer->Block->VMM (Maybe Block)
 getBlockWithNumber num b | num == blockDataNumber (blockBlockData b) = return $ Just b
 getBlockWithNumber num b | num > blockDataNumber (blockBlockData b) = return Nothing
 getBlockWithNumber num b = do
-  parentBlock <- lift $ lift $ getBlock $ blockDataParentHash $ blockBlockData b
+  parentBlock <- lift $ lift $ getBlockLite $ blockDataParentHash $ blockBlockData b
   getBlockWithNumber num $
     fromMaybe (error "missing parent block in call to getBlockWithNumber") parentBlock
 

@@ -19,7 +19,6 @@ import Text.PrettyPrint.ANSI.Leijen hiding ((<$>), (</>))
 import Blockchain.Data.Address
 import Blockchain.Data.AddressStateDB
 import qualified Blockchain.Database.MerklePatricia as MPDB
-import Blockchain.DB.BlockDB
 import Blockchain.DB.CodeDB
 import Blockchain.DB.HashDB
 import Blockchain.DB.SQLDB
@@ -33,7 +32,6 @@ data Context =
   Context {
     contextStateDB::MPDB.MPDB,
     contextHashDB::HashDB,
-    contextBlockDB::BlockDB,
     contextCodeDB::CodeDB,
     contextSQLDB::SQLDB,
     vmTrace::[String]
@@ -56,9 +54,6 @@ instance HasStorageDB ContextM where
 
 instance HasHashDB ContextM where
   getHashDB = fmap contextHashDB get
-
-instance HasBlockDB ContextM where
-  getBlockDB = fmap contextBlockDB get
 
 instance HasCodeDB ContextM where
   getCodeDB = fmap contextCodeDB get

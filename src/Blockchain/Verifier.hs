@@ -88,7 +88,7 @@ checkParentChildValidity Block{blockBlockData=c} Block{blockBlockData=p} = do
 
 checkValidity::Monad m=>Block->ContextM (m ())
 checkValidity b = do
-  maybeParentBlock <- getBlock (blockDataParentHash $ blockBlockData b)
+  maybeParentBlock <- getBlockLite (blockDataParentHash $ blockBlockData b)
   case maybeParentBlock of
     Just parentBlock -> do
           checkParentChildValidity b parentBlock

@@ -44,14 +44,11 @@ main = do
       homeDir <- liftIO getHomeDirectory                     
       sdb <- DB.open (homeDir </> dbDir "h" ++ stateDBPath)
              DB.defaultOptions{DB.createIfMissing=True, DB.cacheSize=1024}
-      bdb <- DB.open (homeDir </> dbDir "h" ++ blockDBPath)
-             DB.defaultOptions{DB.createIfMissing=True, DB.cacheSize=1024}
       let hdb = sdb
           cdb = sdb
       flip runStateT (Context
                            MP.MPDB{MP.ldb=sdb, MP.stateRoot=error "undefined stateroor"}
                            hdb
-                           bdb
                            cdb
                            (sqlDB' dbs)
                            []) $ do
@@ -66,7 +63,7 @@ insertBlockRecursivly hash = do
   childrenHashes <- getChildrenHashes hash
   liftIO $ putStrLn $ "child block hash = " ++ show childrenHashes
   forM_ childrenHashes $ \childHash -> do
-    Just block <- getBlock childHash
+    Just block <- getBlockLite childHash
     liftIO $ putStrLn $ "children of genesis block: " ++ format block
     addBlock False block
     insertBlockRecursivly childHash
