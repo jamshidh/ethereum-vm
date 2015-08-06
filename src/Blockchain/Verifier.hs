@@ -40,9 +40,9 @@ nextDifficulty oldDifficulty oldTime newTime = max nextDiff' minimumDifficulty
     where
       nextDiff' = 
           if round (utcTimeToPOSIXSeconds newTime) >=
-                 (round (utcTimeToPOSIXSeconds oldTime) + 8::Integer)
-          then oldDifficulty - oldDifficulty `shiftR` 11
-          else oldDifficulty + oldDifficulty `shiftR` 11
+                 (round (utcTimeToPOSIXSeconds oldTime) + difficultyDurationLimit::Integer)
+          then oldDifficulty - oldDifficulty `shiftR` difficultyAdjustment
+          else oldDifficulty + oldDifficulty `shiftR` difficultyAdjustment
 
 {-
 nextGasLimit::Integer->Integer->Integer
@@ -51,9 +51,6 @@ nextGasLimit oldGasLimit oldGasUsed = max (max 125000 3141592) ((oldGasLimit * 1
 
 nextGasLimitDelta::Integer->Integer
 nextGasLimitDelta oldGasLimit  = oldGasLimit `div` 1024
-
-minGasLimit::Integer
-minGasLimit = 125000
 
 checkUnclesHash::Block->Bool
 checkUnclesHash b = blockDataUnclesHash (blockBlockData b) == hash (rlpSerialize $ RLPArray (rlpEncode <$> blockBlockUncles b))
@@ -83,7 +80,7 @@ checkParentChildValidity Block{blockBlockData=c} Block{blockBlockData=p} = do
     unless (blockDataGasLimit c >= blockDataGasLimit p - nextGasLimitDelta (blockDataGasLimit p))
              $ fail $ "Block gasLimit is too low: got '" ++ show (blockDataGasLimit c) ++ "', should be less than '" ++ show (blockDataGasLimit p -  nextGasLimitDelta (blockDataGasLimit p)) ++ "'"
     unless (blockDataGasLimit c >= minGasLimit)
-             $ fail $ "Block gasLimit is lower than minGasLimit: got '" ++ show (blockDataGasLimit c) ++ "'"
+             $ fail $ "Block gasLimit is lower than minGasLimit: got '" ++ show (blockDataGasLimit c) ++ "', should be larger than " ++ show minGasLimit
     return ()
 
 checkValidity::Monad m=>Block->ContextM (m ())
