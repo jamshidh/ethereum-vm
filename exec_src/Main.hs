@@ -11,7 +11,7 @@ import System.FilePath
 
 import Blockchain.BlockChain
 import Blockchain.Constants
-import Blockchain.Context
+import Blockchain.VMContext
 import Blockchain.Data.BlockDB
 import Blockchain.Data.DataDefs
 import qualified Blockchain.Database.MerklePatricia as MP

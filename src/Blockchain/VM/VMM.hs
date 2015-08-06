@@ -7,7 +7,7 @@ import Control.Monad.Trans.Either
 import Control.Monad.Trans.State
 import qualified Data.ByteString as B
 
-import Blockchain.Context
+import Blockchain.VMContext
 import Blockchain.Data.Address
 import Blockchain.Data.Log
 import qualified Blockchain.Database.MerklePatricia as MPDB

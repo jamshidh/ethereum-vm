@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TypeSynonymInstances, FlexibleInstances #-}
 
-module Blockchain.Context (
+module Blockchain.VMContext (
   Context(..),
   ContextM,
   getDebugMsg,

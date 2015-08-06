@@ -15,7 +15,7 @@ import Data.Time
 import Data.Time.Clock.POSIX
 import Text.PrettyPrint.ANSI.Leijen hiding ((<$>))
 
-import Blockchain.Context
+import Blockchain.VMContext
 import Blockchain.Data.AddressStateDB
 import Blockchain.Data.BlockDB
 import Blockchain.Data.RLP

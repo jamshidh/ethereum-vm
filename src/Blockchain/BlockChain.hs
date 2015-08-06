@@ -12,11 +12,9 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans
 import Control.Monad.Trans.Either
-import Data.Binary hiding (get)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Base16 as B16
 import qualified Data.ByteString.Char8 as BC
-import qualified Data.ByteString.Lazy as BL
 import Data.Functor
 import Data.List
 import Data.Maybe
@@ -25,7 +23,7 @@ import Text.PrettyPrint.ANSI.Leijen hiding ((<$>))
 import Text.Printf
 
 import qualified Blockchain.Colors as CL
-import Blockchain.Context
+import Blockchain.VMContext
 import Blockchain.Data.Address
 import Blockchain.Data.AddressStateDB
 import Blockchain.Data.BlockDB

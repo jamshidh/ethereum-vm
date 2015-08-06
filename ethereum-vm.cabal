@@ -17,7 +17,7 @@ source-repository this
   branch:   master
   tag:      v0.0.4
 
-executable ethereum-vm
+library
     default-language: Haskell98
     build-depends: 
                    base >= 4 && < 5
@@ -46,7 +46,58 @@ executable ethereum-vm
                  , transformers
                  , vector
                  , ansi-wl-pprint
-    main-is: Main.hs
+    exposed-modules: 
+                   Blockchain.BlockChain
+                   Blockchain.VMContext
+                   Blockchain.Options
+                   Blockchain.VM
+                   Blockchain.VM.Code
+                   Blockchain.VM.Opcodes
+    other-modules:
+                   Blockchain.DB.ModifyStateDB
+                   Blockchain.Verifier
+                   Blockchain.VM.Environment
+                   Blockchain.VM.Memory
+                   Blockchain.VM.OpcodePrices
+                   Blockchain.VM.PrecompiledContracts
+                   Blockchain.VM.VMM
+                   Blockchain.VM.VMState
     ghc-options: -Wall -O2
     buildable: True
     hs-source-dirs: src
+
+
+executable ethereum-vm
+    default-language: Haskell98
+    build-depends: 
+                   base >= 4 && < 5
+                 , base16-bytestring
+                 , binary
+                 , bytestring
+                 , containers
+                 , cryptohash
+                 , directory
+                 , either
+                 , esqueleto
+                 , ethereum-data-sql
+                 , ethereum-encryption
+                 , ethereum-merkle-patricia-db
+                 , ethereum-rlp
+                 , ethereum-util
+                 , ethereum-vm
+                 , filepath
+                 , haskoin
+                 , hflags
+                 , leveldb-haskell
+                 , mtl
+                 , persistent-postgresql
+                 , resourcet
+                 , SHA2
+                 , time
+                 , transformers
+                 , vector
+                 , ansi-wl-pprint
+    main-is: Main.hs
+    ghc-options: -Wall -O2
+    buildable: True
+    hs-source-dirs: exec_src

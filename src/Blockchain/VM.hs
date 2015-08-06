@@ -24,7 +24,7 @@ import Numeric
 import Text.PrettyPrint.ANSI.Leijen hiding ((<$>))
 
 import qualified Blockchain.Colors as CL
-import Blockchain.Context
+import Blockchain.VMContext
 import Blockchain.Data.Address
 import Blockchain.Data.AddressStateDB
 import Blockchain.Data.BlockDB
