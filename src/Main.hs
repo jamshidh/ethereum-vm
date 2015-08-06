@@ -44,12 +44,14 @@ main = do
       homeDir <- liftIO getHomeDirectory                     
       sdb <- DB.open (homeDir </> dbDir "h" ++ stateDBPath)
              DB.defaultOptions{DB.createIfMissing=True, DB.cacheSize=1024}
+      bdb <- DB.open (homeDir </> dbDir "h" ++ blockDBPath)
+             DB.defaultOptions{DB.createIfMissing=True, DB.cacheSize=1024}
       let hdb = sdb
           cdb = sdb
       flip runStateT (Context
-                           MP.MPDB{MP.ldb=sdb}
+                           MP.MPDB{MP.ldb=sdb, MP.stateRoot=error "undefined stateroor"}
                            hdb
-                           undefined
+                           bdb
                            cdb
                            (sqlDB' dbs)
                            []) $ do
