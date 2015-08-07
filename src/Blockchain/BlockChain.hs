@@ -22,6 +22,11 @@ import Data.Time.Clock.POSIX
 import Text.PrettyPrint.ANSI.Leijen hiding ((<$>))
 import Text.Printf
 
+import Control.Monad.Trans.Resource
+import qualified Database.Persist.Postgresql as SQL
+import qualified Database.Esqueleto as E
+import Blockchain.DB.SQLDB
+
 import qualified Blockchain.Colors as CL
 import Blockchain.VMContext
 import Blockchain.Data.Address
@@ -55,6 +60,26 @@ addBlocks isBeingCreated blocks =
     after <- liftIO $ getPOSIXTime 
 
     liftIO $ putStrLn $ "#### Block insertion time = " ++ printf "%.4f" (realToFrac $ after - before::Double) ++ "s"
+
+getBlockIdFromBlock::(HasSQLDB m, MonadResource m, MonadBaseControl IO m)=>
+                     Block->m (E.Key BlockDataRef)
+getBlockIdFromBlock b = do
+  let h = blockHash b
+  db <- getSQLDB
+  entBlkL <- runResourceT $
+    SQL.runSqlPool (actions h) db
+
+  case entBlkL of
+    [] -> error "called getBlockIdFromBlock on a block that wasn't in the DB"
+    lst -> return $ E.unValue . head $ lst
+  where
+    actions h =
+      E.select $
+      E.from $ \(bdRef, block) -> do
+        E.where_ ( (bdRef E.^. BlockDataRefHash E.==. E.val h ) E.&&.
+                   ( bdRef E.^. BlockDataRefBlockId E.==. block E.^. BlockId ))
+        return $ bdRef E.^. BlockDataRefId                        
+
 
 addBlock::Bool->Block->ContextM ()
 addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
@@ -99,7 +124,7 @@ addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
         Right () -> return ()
         Left err -> error err
       -- let bytes = rlpSerialize $ rlpEncode b
-      blkDataId <- putBlock b'
+      blkDataId <- getBlockIdFromBlock b'
       replaceBestIfBetter (blkDataId, b')
 
 addTransactions::Block->Integer->[Transaction]->ContextM ()
