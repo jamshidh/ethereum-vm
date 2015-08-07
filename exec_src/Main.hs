@@ -61,10 +61,8 @@ main = do
 insertBlockRecursivly::SHA->ContextM ()
 insertBlockRecursivly hash = do
   childrenHashes <- getChildrenHashes hash
-  liftIO $ putStrLn $ "child block hash = " ++ show childrenHashes
   forM_ childrenHashes $ \childHash -> do
     Just block <- getBlockLite childHash
-    liftIO $ putStrLn $ "children of genesis block: " ++ format block
     addBlock False block
     insertBlockRecursivly childHash
 
