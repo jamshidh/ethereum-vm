@@ -35,6 +35,7 @@ import Blockchain.Data.BlockDB
 import Blockchain.Data.Code
 import Blockchain.Data.DataDefs
 import Blockchain.Data.DiffDB
+import Blockchain.Data.ProcessedDB
 import Blockchain.Data.Transaction
 import Blockchain.Data.TransactionResult
 import qualified Blockchain.Database.MerklePatricia as MP
@@ -61,24 +62,24 @@ addBlocks isBeingCreated blocks =
 
     liftIO $ putStrLn $ "#### Block insertion time = " ++ printf "%.4f" (realToFrac $ after - before::Double) ++ "s"
 
-getBlockIdFromBlock::(HasSQLDB m, MonadResource m, MonadBaseControl IO m)=>
-                     Block->m (E.Key BlockDataRef)
-getBlockIdFromBlock b = do
+getIdsFromBlock::(HasSQLDB m, MonadResource m, MonadBaseControl IO m)=>
+                     Block->m (E.Key Block, E.Key BlockDataRef)
+getIdsFromBlock b = do
   let h = blockHash b
   db <- getSQLDB
-  entBlkL <- runResourceT $
+  ret <- runResourceT $
     SQL.runSqlPool (actions h) db
 
-  case entBlkL of
+  case ret of
     [] -> error "called getBlockIdFromBlock on a block that wasn't in the DB"
-    lst -> return $ E.unValue . head $ lst
+    [(blockId, blockRefId)] -> return (E.unValue blockId , E.unValue blockRefId)
   where
     actions h =
       E.select $
       E.from $ \(bdRef, block) -> do
         E.where_ ( (bdRef E.^. BlockDataRefHash E.==. E.val h ) E.&&.
                    ( bdRef E.^. BlockDataRefBlockId E.==. block E.^. BlockId ))
-        return $ bdRef E.^. BlockDataRefId                        
+        return $ (block E.^. BlockId, bdRef E.^. BlockDataRefId)
 
 
 addBlock::Bool->Block->ContextM ()
@@ -124,8 +125,10 @@ addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
         Right () -> return ()
         Left err -> error err
       -- let bytes = rlpSerialize $ rlpEncode b
-      blkDataId <- getBlockIdFromBlock b'
+      (blkId, blkDataId) <- getIdsFromBlock b'
       replaceBestIfBetter (blkDataId, b')
+      putProcessed $ Processed blkId
+      return ()
 
 addTransactions::Block->Integer->[Transaction]->ContextM ()
 addTransactions _ _ [] = return ()
