@@ -5,6 +5,8 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Resource
 import qualified Database.LevelDB as DB
+import qualified Database.Persist.Postgresql as SQL
+import qualified Database.Esqueleto as E
 import HFlags
 import System.Directory
 import System.FilePath
@@ -12,27 +14,12 @@ import System.FilePath
 import Blockchain.BlockChain
 import Blockchain.Constants
 import Blockchain.VMContext
-import Blockchain.Data.BlockDB
 import Blockchain.Data.DataDefs
 import qualified Blockchain.Database.MerklePatricia as MP
 import Blockchain.DB.DetailsDB
 import Blockchain.DB.SQLDB
 import Blockchain.DBM
-import Blockchain.Format
-import Blockchain.Options
-import Blockchain.SHA
 
-import qualified Database.Persist.Postgresql as SQL
-import qualified Database.Esqueleto as E
-import Database.Esqueleto.Internal.Language 
-
-{-
-  runResourceT $
-    flip SQL.runSqlPool db $ do
-      [SQL.Entity _ qq] <- SQL.selectList [BlockDataRefParentHash SQL.==. h] [SQL.LimitTo 1]
-
-      return $ Just qq
--}
 
 main::IO ()
 main = do
@@ -66,8 +53,8 @@ getUnprocessedBlocks = do
     runResourceT $
     flip SQL.runSqlPool db $ 
     E.select $
-    E.from $ \(bd `InnerJoin` block `LeftOuterJoin` processed) -> do
-      E.on (just (block E.^. BlockId) E.==. processed E.?. ProcessedBlockId)
+    E.from $ \(bd `E.InnerJoin` block `E.LeftOuterJoin` processed) -> do
+      E.on (E.just (block E.^. BlockId) E.==. processed E.?. ProcessedBlockId)
       E.on (bd E.^. BlockDataRefBlockId E.==. block E.^. BlockId)
       E.where_ (E.isNothing (processed E.?. ProcessedId))
       E.orderBy [E.asc (bd E.^. BlockDataRefNumber)]
