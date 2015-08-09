@@ -54,28 +54,27 @@ main = do
                            []) $ do
           b1 <- getGenesisBlockHash
           liftIO $ putStrLn $ "genesis block hash = " ++ show b1
-          insertBlockRecursivly b1
-          return ()
+          blocks <- getUnprocessedBlocks
+          forM_ blocks $ addBlock False
+
   return ()
 
-insertBlockRecursivly::SHA->ContextM ()
-insertBlockRecursivly hash = do
-  childrenHashes <- getChildrenHashes hash
-  forM_ childrenHashes $ \childHash -> do
-    Just block <- getBlockLite childHash
-    addBlock False block
-    insertBlockRecursivly childHash
-
-
-getChildrenHashes::(HasSQLDB m, MonadResource m, MonadBaseControl IO m)=>SHA->m [SHA]
-getChildrenHashes h = do
+getUnprocessedBlocks::ContextM [Block]
+getUnprocessedBlocks = do
   db <- getSQLDB
   hashVals <-
     runResourceT $
     flip SQL.runSqlPool db $ 
     E.select $
-    E.from $ \bdRef -> do
-      E.where_ (bdRef E.^. BlockDataRefParentHash E.==. E.val h )
-      return $ bdRef E.^. BlockDataRefHash
+    E.from $ \(bd `InnerJoin` block `LeftOuterJoin` processed) -> do
+      E.on (just (block E.^. BlockId) E.==. processed E.?. ProcessedBlockId)
+      E.on (bd E.^. BlockDataRefBlockId E.==. block E.^. BlockId)
+      E.where_ (E.isNothing (processed E.?. ProcessedId))
+      E.orderBy [E.asc (bd E.^. BlockDataRefNumber)]
+      E.limit 1000
+      return block
+      
+  return $ map E.entityVal hashVals
 
-  return [x|Value x <- hashVals]
+
+  
