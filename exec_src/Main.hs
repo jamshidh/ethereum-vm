@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, FlexibleContexts #-}
 
+import Control.Concurrent
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.State
@@ -16,9 +17,9 @@ import Blockchain.Constants
 import Blockchain.VMContext
 import Blockchain.Data.DataDefs
 import qualified Blockchain.Database.MerklePatricia as MP
-import Blockchain.DB.DetailsDB
 import Blockchain.DB.SQLDB
 import Blockchain.DBM
+import Blockchain.Options
 
 
 main::IO ()
@@ -38,11 +39,11 @@ main = do
                            hdb
                            cdb
                            (sqlDB' dbs)
-                           []) $ do
-          b1 <- getGenesisBlockHash
-          liftIO $ putStrLn $ "genesis block hash = " ++ show b1
-          blocks <- getUnprocessedBlocks
-          forM_ blocks $ addBlock False
+                           []) $ 
+          forever $ do
+            blocks <- getUnprocessedBlocks
+            forM_ blocks $ addBlock False
+            when (length blocks < 100) $ liftIO $ threadDelay 5000000
 
   return ()
 
