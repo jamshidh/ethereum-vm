@@ -44,6 +44,7 @@ import Blockchain.DB.ModifyStateDB
 import Blockchain.DB.StateDB
 import Blockchain.Constants
 import Blockchain.ExtWord
+import Blockchain.Format
 import Blockchain.Options
 import Blockchain.Verifier
 import Blockchain.VM
@@ -84,11 +85,11 @@ getIdsFromBlock b = do
 
 addBlock::Bool->Block->ContextM ()
 addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
-  liftIO $ putStrLn $ "Inserting block #" ++ show (blockDataNumber bd) ++ " (" ++ show (pretty $ blockHash b) ++ ")."
+  liftIO $ putStrLn $ "Inserting block #" ++ show (blockDataNumber bd) ++ " (" ++ format (blockHash b) ++ ")."
   maybeParent <- getBlockLite $ blockDataParentHash bd
   case maybeParent of
     Nothing ->
-      liftIO $ putStrLn $ "Missing parent block in addBlock: " ++ show (pretty $ blockDataParentHash bd) ++ "\n" ++
+      liftIO $ putStrLn $ "Missing parent block in addBlock: " ++ format (blockDataParentHash bd) ++ "\n" ++
       "Block will not be added now, but will be requested and added later"
     Just parentBlock -> do
       setStateDBStateRoot $ blockDataStateRoot $ blockBlockData parentBlock
@@ -116,8 +117,8 @@ addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
         then return b{blockBlockData = (blockBlockData b){blockDataStateRoot=MP.stateRoot db}}
         else do
           when ((blockDataStateRoot (blockBlockData b) /= MP.stateRoot db)) $ do
-            liftIO $ putStrLn $ "newStateRoot: " ++ show (pretty $ MP.stateRoot db)
-            error $ "stateRoot mismatch!!  New stateRoot doesn't match block stateRoot: " ++ show (pretty $ blockDataStateRoot $ blockBlockData b)
+            liftIO $ putStrLn $ "newStateRoot: " ++ format (MP.stateRoot db)
+            error $ "stateRoot mismatch!!  New stateRoot doesn't match block stateRoot: " ++ format (blockDataStateRoot $ blockBlockData b)
           return b
 
       valid <- checkValidity b'
@@ -328,7 +329,7 @@ x ?! err = maybe (left err) return $ x
 
 replaceBestIfBetter::(BlockDataRefId, Block)->ContextM ()
 replaceBestIfBetter (blkDataId, b) = do
-  best <- getBestBlock 
+  best <- getBestProcessedBlock 
   if blockDataNumber (blockBlockData best) >= n
     then return ()
     else do

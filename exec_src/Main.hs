@@ -16,6 +16,7 @@ import Blockchain.BlockChain
 import Blockchain.Constants
 import Blockchain.VMContext
 import Blockchain.Data.DataDefs
+import Blockchain.Data.Transaction
 import qualified Blockchain.Database.MerklePatricia as MP
 import Blockchain.DB.SQLDB
 import Blockchain.DBM
@@ -43,6 +44,8 @@ main = do
           forever $ do
             blocks <- getUnprocessedBlocks
             forM_ blocks $ addBlock False
+            --transactions <- getUnprocessedTransactions
+            
             when (length blocks < 100) $ liftIO $ threadDelay 5000000
 
   return ()
@@ -50,7 +53,26 @@ main = do
 getUnprocessedBlocks::ContextM [Block]
 getUnprocessedBlocks = do
   db <- getSQLDB
-  hashVals <-
+  blocks <-
+    runResourceT $
+    flip SQL.runSqlPool db $ 
+    E.select $
+    E.from $ \(bd `E.InnerJoin` block `E.LeftOuterJoin` processed) -> do
+      E.on (E.just (block E.^. BlockId) E.==. processed E.?. ProcessedBlockId)
+      E.on (bd E.^. BlockDataRefBlockId E.==. block E.^. BlockId)
+      E.where_ (E.isNothing (processed E.?. ProcessedId))
+      E.where_ (bd E.^. BlockDataRefNumber E.!=. E.val 0)
+      E.orderBy [E.asc (bd E.^. BlockDataRefNumber)]
+      E.limit 1000
+      return block
+      
+  return $ map E.entityVal blocks
+
+getUnprocessedTransactions::ContextM [Transaction]
+getUnprocessedTransactions = do
+  undefined
+{-  db <- getSQLDB
+  transactions <-
     runResourceT $
     flip SQL.runSqlPool db $ 
     E.select $
@@ -62,7 +84,7 @@ getUnprocessedBlocks = do
       E.limit 1000
       return block
       
-  return $ map E.entityVal hashVals
-
+  return $ map E.entityVal transactions
+-}
 
   

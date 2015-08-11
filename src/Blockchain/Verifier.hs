@@ -22,6 +22,7 @@ import Blockchain.Data.RLP
 import Blockchain.Data.Transaction
 import Blockchain.Constants
 import Blockchain.ExtDBs
+import Blockchain.Format
 --import Blockchain.Mining
 import Blockchain.SHA
 
@@ -93,9 +94,9 @@ checkValidity b = do
           --unless nIsValid $ fail $ "Block nonce is wrong: " ++ format b
           unless (checkUnclesHash b) $ fail "Block unclesHash is wrong"
           stateRootExists <- verifyStateRootExists b
-          unless stateRootExists $ fail ("Block stateRoot does not exist: " ++ show (pretty $ blockDataStateRoot $ blockBlockData b))
+          unless stateRootExists $ fail ("Block stateRoot does not exist: " ++ format (blockDataStateRoot $ blockBlockData b))
           return $ return ()
-    Nothing -> fail ("Parent Block does not exist: " ++ show (pretty $ blockDataParentHash $ blockBlockData b))
+    Nothing -> fail ("Parent Block does not exist: " ++ format (blockDataParentHash $ blockBlockData b))
 
 
 {-
