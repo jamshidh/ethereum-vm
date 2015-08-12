@@ -277,12 +277,11 @@ printTransactionMessage t b f = do
   
   addrDiff <- addrDbDiff mpdb stateRootBefore stateRootAfter
 
-  let (resultString, response) =
+  let (resultString, response, theTrace') =
         case result of 
-          Left err -> (err, "")
-          Right (state', _) -> ("Success!", BC.unpack $ B16.encode $ fromMaybe "" $ returnVal state')
+          Left err -> (err, "", []) --TODO keep the trace when the run fails
+          Right (state', _) -> ("Success!", BC.unpack $ B16.encode $ fromMaybe "" $ returnVal state', unlines $ reverse $ theTrace state')
 
-  detailsString <- getDebugMsg
   _ <-
         putTransactionResult $
         TransactionResult {
@@ -290,7 +289,7 @@ printTransactionMessage t b f = do
           transactionResultTransactionHash=transactionHash t,
           transactionResultMessage=resultString,
           transactionResultResponse=response,
-          transactionResultTrace=detailsString,
+          transactionResultTrace=theTrace',
           transactionResultGasUsed=0,
           transactionResultEtherUsed=0,
           transactionResultContractsCreated=intercalate "," $ map formatAddress [x|CreateAddr x _ <- addrDiff],
@@ -301,7 +300,7 @@ printTransactionMessage t b f = do
           }
   
 
-  clearDebugMsg
+  --clearDebugMsg
 
   liftIO $ putStrLn $ CL.magenta "    |" ++ " t = " ++ printf "%.2f" (realToFrac $ after - before::Double) ++ "s                                                              " ++ CL.magenta "|"
   liftIO $ putStrLn $ CL.magenta "    =========================================================================="

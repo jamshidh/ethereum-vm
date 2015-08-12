@@ -14,13 +14,16 @@ import System.FilePath
 
 import Blockchain.BlockChain
 import Blockchain.Constants
-import Blockchain.VMContext
+import Blockchain.Data.BlockDB
 import Blockchain.Data.DataDefs
+import Blockchain.DB.DetailsDB
 import Blockchain.Data.Transaction
 import qualified Blockchain.Database.MerklePatricia as MP
 import Blockchain.DB.SQLDB
 import Blockchain.DBM
+import Blockchain.Format
 import Blockchain.Options
+import Blockchain.VMContext
 
 
 main::IO ()
@@ -39,8 +42,7 @@ main = do
                            MP.MPDB{MP.ldb=sdb, MP.stateRoot=error "undefined stateroor"}
                            hdb
                            cdb
-                           (sqlDB' dbs)
-                           []) $ 
+                           (sqlDB' dbs)) $ 
           forever $ do
             blocks <- getUnprocessedBlocks
             forM_ blocks $ addBlock False
@@ -61,7 +63,7 @@ getUnprocessedBlocks = do
       E.on (E.just (block E.^. BlockId) E.==. processed E.?. ProcessedBlockId)
       E.on (bd E.^. BlockDataRefBlockId E.==. block E.^. BlockId)
       E.where_ (E.isNothing (processed E.?. ProcessedId))
-      E.where_ (bd E.^. BlockDataRefNumber E.!=. E.val 0)
+--      E.where_ (bd E.^. BlockDataRefNumber E.!=. E.val 0)
       E.orderBy [E.asc (bd E.^. BlockDataRefNumber)]
       E.limit 1000
       return block

@@ -16,6 +16,7 @@ import Data.IORef
 import Data.Word
 
 
+import Blockchain.VMContext
 import Blockchain.Data.Address
 import Blockchain.Data.Log
 import Blockchain.ExtWord
@@ -57,6 +58,7 @@ data DebugCallCreate =
 
 data VMState =
   VMState {
+    dbs::Context,
     vmGasRemaining::Integer,
     pc::Word256,
     memory::Memory,
@@ -68,7 +70,8 @@ data VMState =
     done::Bool,
     returnVal::Maybe B.ByteString,
     debugCallCreates::Maybe [DebugCallCreate],
-    
+
+    theTrace::[String],
     logs::[Log],
 
     environment::Environment,
@@ -98,6 +101,7 @@ startingState env = do
                memory=m, 
                callDepth=0,
                refund=0,
+               theTrace=[],
                logs=[],
                environment=env,
                debugCallCreates=Nothing, --only used for running ethereum tests

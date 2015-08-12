@@ -3,9 +3,8 @@
 module Blockchain.VMContext (
   Context(..),
   ContextM,
-  getDebugMsg,
-  addDebugMsg,
-  clearDebugMsg,
+--  getDebugMsg,
+--  clearDebugMsg,
   incrementNonce,
   getNewAddress
   ) where
@@ -33,8 +32,7 @@ data Context =
     contextStateDB::MPDB.MPDB,
     contextHashDB::HashDB,
     contextCodeDB::CodeDB,
-    contextSQLDB::SQLDB,
-    vmTrace::[String]
+    contextSQLDB::SQLDB
     }
 
 type ContextM = StateT Context (ResourceT IO)
@@ -61,27 +59,26 @@ instance HasCodeDB ContextM where
 instance HasSQLDB ContextM where
   getSQLDB = fmap contextSQLDB get
 
+{-
 getDebugMsg::ContextM String
 getDebugMsg = do
   cxt <- get
   return $ concat $ reverse $ vmTrace cxt
 
-addDebugMsg::String->ContextM ()
-addDebugMsg msg = do
-  cxt <- get
-  put cxt{vmTrace=msg:vmTrace cxt}
-
 clearDebugMsg::ContextM ()
 clearDebugMsg = do
   cxt <- get
   put cxt{vmTrace=[]}
+-}
 
-incrementNonce::Address->ContextM ()
+incrementNonce::(HasStateDB m, HasHashDB m)=>
+                Address->m ()
 incrementNonce address = do
   addressState <- getAddressState address
   putAddressState address addressState{ addressStateNonce = addressStateNonce addressState + 1 }
 
-getNewAddress::Address->ContextM Address
+getNewAddress::(HasStateDB m, HasHashDB m)=>
+               Address->m Address
 getNewAddress address = do
   addressState <- getAddressState address
   when flags_debug $ liftIO $ putStrLn $ "Creating new account: owner=" ++ show (pretty address) ++ ", nonce=" ++ show (addressStateNonce addressState)

@@ -4,22 +4,45 @@ module Blockchain.VM.VMM where
 
 import Control.Monad.Trans
 import Control.Monad.Trans.Either
+import Control.Monad.Trans.Resource
 import Control.Monad.Trans.State
 import qualified Data.ByteString as B
 
 import Blockchain.VMContext
 import Blockchain.Data.Address
 import Blockchain.Data.Log
-import qualified Blockchain.Database.MerklePatricia as MPDB
+import qualified Blockchain.Database.MerklePatricia as MP
+import Blockchain.DB.CodeDB
+import Blockchain.DB.HashDB
 import Blockchain.DB.ModifyStateDB
+import Blockchain.DB.StateDB
+import Blockchain.DB.StorageDB
+import Blockchain.DB.SQLDB
 import Blockchain.ExtDBs
 import Blockchain.ExtWord
 import Blockchain.VM.Environment
 import Blockchain.VM.VMState
 import Blockchain.SHA
 
-type VMM = EitherT VMException (StateT VMState ContextM)
+type VMM = EitherT VMException (StateT VMState (ResourceT IO))
+--type VMM2 = EitherT VMException (StateT VMState (ResourceT IO))
 
+instance MonadResource VMM where
+
+instance HasHashDB VMM where
+    getHashDB = lift $ fmap (contextHashDB . dbs) get
+
+instance HasStateDB VMM where
+    getStateDB = lift $ fmap (contextStateDB . dbs) get
+
+instance HasStorageDB VMM where
+    getStorageDB = lift $ fmap (MP.ldb . contextStateDB . dbs) get --storage uses the state db also
+
+instance HasCodeDB VMM where
+    getCodeDB = lift $ fmap (contextCodeDB . dbs) get
+
+instance HasSQLDB VMM where
+    getSQLDB = lift $ fmap (contextSQLDB . dbs) get
 
 class Word256Storable a where
   fromWord256::Word256->a
@@ -143,14 +166,14 @@ addGas gas = do
 
 pay'::String->Address->Address->Integer->VMM ()
 pay' reason from to val = do
-  success <- lift $ lift $ pay reason from to val
+  success <- pay reason from to val
   if success
     then return ()
     else left InsufficientFunds
 
 addToBalance'::Address->Integer->VMM ()
 addToBalance' address' val = do
-  success <- lift $ lift $ addToBalance address' val
+  success <- addToBalance address' val
   if success
     then return ()
     else left InsufficientFunds
@@ -158,21 +181,26 @@ addToBalance' address' val = do
 getStorageKeyVal::Word256->VMM Word256
 getStorageKeyVal key = do
   owner <- getEnvVar envOwner
-  lift $ lift $ getStorageKeyVal' owner key
+  getStorageKeyVal' owner key
 
-getAllStorageKeyVals::VMM [(MPDB.Key, Word256)]
+getAllStorageKeyVals::VMM [(MP.Key, Word256)]
 getAllStorageKeyVals = do
   owner <- getEnvVar envOwner
-  lift $ lift $ getAllStorageKeyVals' owner
+  getAllStorageKeyVals' owner
 
 
 putStorageKeyVal::Word256->Word256->VMM ()
 putStorageKeyVal key val = do
   owner <- getEnvVar envOwner
-  lift $ lift $ putStorageKeyVal' owner key val
+  putStorageKeyVal' owner key val
 
 deleteStorageKey::Word256->VMM ()
 deleteStorageKey key = do
   owner <- getEnvVar envOwner
-  lift $ lift $ deleteStorageKey' owner key
+  deleteStorageKey' owner key
+
+vmTrace::String->VMM ()
+vmTrace msg = do
+  cxt <- lift $ get
+  lift $ put cxt{theTrace=msg:theTrace cxt}
 
