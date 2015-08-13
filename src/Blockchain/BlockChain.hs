@@ -117,6 +117,8 @@ addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
         then do
           let newBlock = b{blockBlockData = (blockBlockData b){blockDataStateRoot=MP.stateRoot db}}
           putBlock $ newBlock
+          deleteBlock b
+
           return newBlock
         else do
           when ((blockDataStateRoot (blockBlockData b) /= MP.stateRoot db)) $ do
@@ -133,6 +135,21 @@ addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
       replaceBestIfBetter (blkDataId, b')
       putProcessed $ Processed blkId
       return ()
+
+deleteBlock::(HasSQLDB m, MonadIO m, MonadResource m)=>
+             Block->m ()
+deleteBlock b = do
+  pool <- getSQLDB
+  (blkId, blkDataId) <- getIdsFromBlock b
+  runResourceT $ flip SQL.runSqlPool pool $
+             E.delete $
+             E.from $ \b -> do
+                E.where_ (b E.^. BlockId E.==. E.val blkId)
+  runResourceT $ flip SQL.runSqlPool pool $
+             E.delete $
+             E.from $ \b -> do
+                E.where_ (b E.^. BlockDataRefId E.==. E.val blkDataId)
+  return ()
 
 addTransactions::Block->Integer->[Transaction]->ContextM ()
 addTransactions _ _ [] = return ()
