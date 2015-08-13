@@ -50,12 +50,12 @@ library
                    Blockchain.BlockChain
                    Blockchain.VMContext
                    Blockchain.Options
+                   Blockchain.Verifier
                    Blockchain.VM
                    Blockchain.VM.Code
                    Blockchain.VM.Opcodes
     other-modules:
                    Blockchain.DB.ModifyStateDB
-                   Blockchain.Verifier
                    Blockchain.VM.Environment
                    Blockchain.VM.Memory
                    Blockchain.VM.OpcodePrices
