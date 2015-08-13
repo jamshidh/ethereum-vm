@@ -187,7 +187,7 @@ addTransaction b remainingBlockGas t = do
   when (transactionGasLimit t * transactionGasPrice t + transactionValue t > addressStateBalance addressState) $ left "sender doesn't have high enough balance"
   when (intrinsicGas' > transactionGasLimit t) $ left "intrinsic gas higher than transaction gas limit"
   when (transactionGasLimit t > remainingBlockGas) $ left "block gas has run out"
-  when (not nonceValid) $ left "nonce incorrect"
+  when (not nonceValid) $ left $ "nonce incorrect, got " ++ show (transactionNonce t) ++ ", expected " ++ show (addressStateNonce addressState)
 
   let availableGas = transactionGasLimit t - intrinsicGas'    
 
