@@ -113,7 +113,7 @@ addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
       db <- getStateDB
 
       b' <-
-        if isBeingCreated
+        if flags_wrapTransactions
         then return b{blockBlockData = (blockBlockData b){blockDataStateRoot=MP.stateRoot db}}
         else do
           when ((blockDataStateRoot (blockBlockData b) /= MP.stateRoot db)) $ do
