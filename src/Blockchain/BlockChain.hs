@@ -143,12 +143,12 @@ deleteBlock b = do
   (blkId, blkDataId) <- getIdsFromBlock b
   runResourceT $ flip SQL.runSqlPool pool $ do
              E.delete $
-             E.from $ \b -> do
-                E.where_ (b E.^. BlockDataRefId E.==. E.val blkDataId)
+              E.from $ \b -> do
+                  E.where_ (b E.^. BlockDataRefId E.==. E.val blkDataId)
 
              E.delete $
-             E.from $ \b -> do
-                E.where_ (b E.^. BlockId E.==. E.val blkId)
+              E.from $ \b -> do
+                  E.where_ (b E.^. BlockId E.==. E.val blkId)
 
   return ()
 
