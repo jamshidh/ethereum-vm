@@ -126,8 +126,8 @@ addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
         Right () -> return ()
         Left err -> error err
       -- let bytes = rlpSerialize $ rlpEncode b
-      (blkId, blkDataId) <- getIdsFromBlock b'
-      replaceBestIfBetter (blkDataId, b')
+      (blkId, blkDataId) <- getIdsFromBlock b
+      replaceBestIfBetter (blkDataId, b)
       putProcessed $ Processed blkId
       return ()
 
