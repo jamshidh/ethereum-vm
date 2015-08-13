@@ -65,7 +65,15 @@ getNextBlock b transactions = do
              }
 
 
-
+wrapTransactions::ContextM ()
+wrapTransactions = do
+  transactions <- getUnprocessedTransactions
+                  
+  when (not $ null transactions) $ do
+                     bestBlock <-getBestBlock
+                     nextBlock <- liftIO $ getNextBlock bestBlock transactions
+                     putBlockLite nextBlock 
+                     return ()
 
 main::IO ()
 main = do
@@ -87,13 +95,8 @@ main = do
           forever $ do
             blocks <- getUnprocessedBlocks
             forM_ blocks $ addBlock False
-            transactions <- getUnprocessedTransactions
 
-            when (not $ null transactions) $ do
-                      bestBlock <-getBestBlock
-                      nextBlock <- liftIO $ getNextBlock bestBlock transactions
-                      putBlockLite nextBlock 
-                      return ()
+            when (flags_wrapTransactions) wrapTransactions
 
             when (length blocks < 100) $ liftIO $ threadDelay 5000000
 
