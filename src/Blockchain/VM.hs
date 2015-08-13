@@ -766,7 +766,8 @@ runCodeFromStart = do
 
 runVMM::Int->Environment->Integer->VMM a->ContextM (Either VMException a, VMState)
 runVMM callDepth' env availableGas f = do
-  vmState <- liftIO $ startingState env
+  dbs <- get
+  vmState <- liftIO $ startingState env dbs
 
   stateDBBefore <- getStateDB
   result <- lift $ 
@@ -801,7 +802,9 @@ create b callDepth' sender origin value' gasPrice' availableGas newAddress init'
           envJumpDests = getValidJUMPDESTs init'
           }
 
-  vmState <- liftIO $ startingState env
+  dbs <- get
+
+  vmState <- liftIO $ startingState env dbs
 
   success <- 
     if toInteger value' > 0

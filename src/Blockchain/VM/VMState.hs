@@ -87,11 +87,12 @@ instance Format VMState where
     "gasRemaining: " ++ show (vmGasRemaining state) ++ "\n" ++
     "stack: " ++ show (stack state) ++ "\n"
 
-startingState::Environment->IO VMState
-startingState env = do
+startingState::Environment->Context->IO VMState
+startingState env dbs' = do
   m <- newMemory
   return VMState 
              {
+               dbs = dbs',
                pc = 0,
                done=False,
                returnVal=Nothing,
