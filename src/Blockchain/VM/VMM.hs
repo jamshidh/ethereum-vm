@@ -34,6 +34,9 @@ instance HasHashDB VMM where
 
 instance HasStateDB VMM where
     getStateDB = lift $ fmap (contextStateDB . dbs) get
+    setStateDBStateRoot x = do
+      vmState <- lift get
+      lift $ put vmState{dbs=(dbs vmState){contextStateDB=(contextStateDB $ dbs vmState){MP.stateRoot=x}}}
 
 instance HasStorageDB VMM where
     getStorageDB = lift $ fmap (MP.ldb . contextStateDB . dbs) get --storage uses the state db also
