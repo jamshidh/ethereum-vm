@@ -141,14 +141,15 @@ deleteBlock::(HasSQLDB m, MonadIO m, MonadResource m)=>
 deleteBlock b = do
   pool <- getSQLDB
   (blkId, blkDataId) <- getIdsFromBlock b
-  runResourceT $ flip SQL.runSqlPool pool $
-             E.delete $
-             E.from $ \b -> do
-                E.where_ (b E.^. BlockId E.==. E.val blkId)
-  runResourceT $ flip SQL.runSqlPool pool $
+  runResourceT $ flip SQL.runSqlPool pool $ do
              E.delete $
              E.from $ \b -> do
                 E.where_ (b E.^. BlockDataRefId E.==. E.val blkDataId)
+
+             E.delete $
+             E.from $ \b -> do
+                E.where_ (b E.^. BlockId E.==. E.val blkId)
+
   return ()
 
 addTransactions::Block->Integer->[Transaction]->ContextM ()
