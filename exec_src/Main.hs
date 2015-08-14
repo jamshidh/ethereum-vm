@@ -107,7 +107,7 @@ main = do
 
             when (flags_wrapTransactions) wrapTransactions
 
-            when (length blocks < 100) $ liftIO $ threadDelay 5000000
+            when (length blocks < 100) $ liftIO $ threadDelay 50000
 
   return ()
 
