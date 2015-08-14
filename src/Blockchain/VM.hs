@@ -766,19 +766,16 @@ runCodeFromStart = do
 
 runVMM::Int->Environment->Integer->VMM a->ContextM (Either VMException a, VMState)
 runVMM callDepth' env availableGas f = do
-  dbs <- get
-  vmState <- liftIO $ startingState env dbs
+  dbs' <- get
+  vmState <- liftIO $ startingState env dbs'
 
-  stateDBBefore <- getStateDB
   result <- lift $ 
       flip runStateT vmState{callDepth=callDepth', vmGasRemaining=availableGas} $
       runEitherT f
 
   case result of
-      (Left e, _) -> do
-        liftIO $ putStrLn $ CL.red $ "Exception caught (" ++ show e ++ "), reverting state"
-        setStateDBStateRoot $ MP.stateRoot stateDBBefore
-      _ -> return ()
+      (Left e, _) -> liftIO $ putStrLn $ CL.red $ "Exception caught (" ++ show e ++ "), reverting state"
+      (_, stateAfter) -> setStateDBStateRoot $ MP.stateRoot $ contextStateDB $ dbs $ stateAfter
 
 
   when flags_debug $ liftIO $ putStrLn "VM has finished running"
@@ -861,6 +858,7 @@ create' = do
       addCode codeBytes'
       newAddressState <- getAddressState address'
       putAddressState address' newAddressState{addressStateCodeHash=hash codeBytes'}
+
 
 
 
