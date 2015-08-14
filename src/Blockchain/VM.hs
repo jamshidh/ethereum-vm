@@ -946,14 +946,17 @@ create_debugWrapper block owner value initCodeBytes = do
 
       currentCallDepth <- getCallDepth
                           
+      dbs' <- lift $ fmap dbs get
+
       let runEm::ContextM a->VMM (a, Context)
-          runEm f = lift $ lift $ flip runStateT Context{} f
+          runEm f = lift $ lift $ flip runStateT dbs' f
           callEm::ContextM (Either VMException Code, VMState)
           callEm = create block (currentCallDepth+1) owner origin (toInteger value) gasPrice gasRemaining newAddress initCode
 
-      ((result, finalVMState), _) <- runEm callEm
-          
+      ((result, finalVMState), finalDBs) <- runEm callEm
 
+      setStateDBStateRoot $ MP.stateRoot $ contextStateDB $ finalDBs
+  
       setGasRemaining $ vmGasRemaining finalVMState
 
       case result of
@@ -980,16 +983,19 @@ nestedRun_debugWrapper gas receiveAddress (Address address') sender value inputD
 
   env <- lift $ fmap environment $ get
 
+  dbs' <- lift $ fmap dbs get
 
   let runEm::ContextM a->VMM (a, Context)
-      runEm f = lift $ lift $ flip runStateT Context{} f
+      runEm f = lift $ lift $ flip runStateT dbs' f
       callEm::ContextM (Either VMException B.ByteString, VMState)
       callEm = call (envBlock env) (currentCallDepth+1) receiveAddress (Address address') sender value (fromIntegral $ envGasPrice env) inputData gas (envOrigin env)
 
 
-  ((result, finalVMState), _) <- 
+  ((result, finalVMState), finalDBs) <- 
       runEm callEm
       
+  setStateDBStateRoot $ MP.stateRoot $ contextStateDB $ finalDBs
+  
 
   case result of
         Right retVal -> do
