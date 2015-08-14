@@ -74,6 +74,7 @@ getIdsFromBlock b = do
   case ret of
     [] -> error "called getBlockIdFromBlock on a block that wasn't in the DB"
     [(blockId, blockRefId)] -> return (E.unValue blockId , E.unValue blockRefId)
+    _ -> error "called getBlockIdFromBlock on a block that appears more than once in the DB"
   where
     actions h =
       E.select $
@@ -142,6 +143,10 @@ deleteBlock b = do
   pool <- getSQLDB
   (blkId, blkDataId) <- getIdsFromBlock b
   runResourceT $ flip SQL.runSqlPool pool $ do
+             E.delete $
+              E.from $ \t -> do
+                  E.where_ (t E.^. RawTransactionBlockId E.==. E.val blkId)
+
              E.delete $
               E.from $ \b -> do
                   E.where_ (b E.^. BlockDataRefId E.==. E.val blkDataId)

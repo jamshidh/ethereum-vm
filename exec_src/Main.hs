@@ -68,12 +68,21 @@ getNextBlock b transactions = do
 wrapTransactions::ContextM ()
 wrapTransactions = do
   transactions <- getUnprocessedTransactions
-                  
+  pool <- getSQLDB
+
   when (not $ null transactions) $ do
                      bestBlock <-getBestBlock
                      nextBlock <- liftIO $ getNextBlock bestBlock transactions
-                     putBlockLite nextBlock 
+                     blockId <- putBlockLite nextBlock 
+                     runResourceT $
+                                  flip SQL.runSqlPool pool $ 
+                                       E.update $ \t -> do
+                                         E.set t [ RawTransactionBlockNumber E.=. E.val (fromInteger $ blockDataNumber $ blockBlockData nextBlock),
+                                                   RawTransactionBlockId E.=. E.val (blockId)]
+                                         E.where_ (t E.^. RawTransactionBlockNumber E.==. E.val (-1))
                      return ()
+
+
 
 main::IO ()
 main = do
