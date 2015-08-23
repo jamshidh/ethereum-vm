@@ -5,6 +5,8 @@ module Blockchain.VMContext (
   ContextM,
 --  getDebugMsg,
 --  clearDebugMsg,
+  getCachedBestProcessedBlock,
+  putCachedBestProcessedBlock,      
   incrementNonce,
   getNewAddress
   ) where
@@ -17,6 +19,7 @@ import Text.PrettyPrint.ANSI.Leijen hiding ((<$>), (</>))
 
 import Blockchain.Data.Address
 import Blockchain.Data.AddressStateDB
+import Blockchain.Data.BlockDB
 import qualified Blockchain.Database.MerklePatricia as MPDB
 import Blockchain.DB.CodeDB
 import Blockchain.DB.HashDB
@@ -32,7 +35,8 @@ data Context =
     contextStateDB::MPDB.MPDB,
     contextHashDB::HashDB,
     contextCodeDB::CodeDB,
-    contextSQLDB::SQLDB
+    contextSQLDB::SQLDB,
+    cachedBestProcessedBlock::Maybe Block
     }
 
 type ContextM = StateT Context (ResourceT IO)
@@ -70,6 +74,16 @@ clearDebugMsg = do
   cxt <- get
   put cxt{vmTrace=[]}
 -}
+
+getCachedBestProcessedBlock::ContextM (Maybe Block)
+getCachedBestProcessedBlock = do
+  cxt <- get
+  return $ cachedBestProcessedBlock cxt
+
+putCachedBestProcessedBlock::Block->ContextM ()
+putCachedBestProcessedBlock b = do
+  cxt <- get
+  put cxt{cachedBestProcessedBlock=Just b}
 
 incrementNonce::(HasStateDB m, HasHashDB m)=>
                 Address->m ()

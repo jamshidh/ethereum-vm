@@ -100,7 +100,8 @@ main = do
                            MP.MPDB{MP.ldb=sdb, MP.stateRoot=error "undefined stateroor"}
                            hdb
                            cdb
-                           (sqlDB' dbs)) $ 
+                           (sqlDB' dbs)
+                           Nothing) $ 
           forever $ do
             blocks <- getUnprocessedBlocks
             forM_ blocks $ addBlock False

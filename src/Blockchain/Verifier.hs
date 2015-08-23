@@ -24,6 +24,7 @@ import Blockchain.Constants
 import Blockchain.ExtDBs
 import Blockchain.Format
 --import Blockchain.Mining
+import Blockchain.Options
 import Blockchain.SHA
 
 --import Debug.Trace
@@ -41,7 +42,7 @@ nextDifficulty oldDifficulty oldTime newTime = max nextDiff' minimumDifficulty
     where
       nextDiff' = 
           if round (utcTimeToPOSIXSeconds newTime) >=
-                 (round (utcTimeToPOSIXSeconds oldTime) + difficultyDurationLimit::Integer)
+                 (round (utcTimeToPOSIXSeconds oldTime) + difficultyDurationLimit flags_useTestnet::Integer)
           then oldDifficulty - oldDifficulty `shiftR` difficultyAdjustment
           else oldDifficulty + oldDifficulty `shiftR` difficultyAdjustment
 
@@ -80,8 +81,8 @@ checkParentChildValidity Block{blockBlockData=c} Block{blockBlockData=p} = do
              $ fail $ "Block gasLimit is too high: got '" ++ show (blockDataGasLimit c) ++ "', should be less than '" ++ show (blockDataGasLimit p +  nextGasLimitDelta (blockDataGasLimit p)) ++ "'"
     unless (blockDataGasLimit c >= blockDataGasLimit p - nextGasLimitDelta (blockDataGasLimit p))
              $ fail $ "Block gasLimit is too low: got '" ++ show (blockDataGasLimit c) ++ "', should be less than '" ++ show (blockDataGasLimit p -  nextGasLimitDelta (blockDataGasLimit p)) ++ "'"
-    unless (blockDataGasLimit c >= minGasLimit)
-             $ fail $ "Block gasLimit is lower than minGasLimit: got '" ++ show (blockDataGasLimit c) ++ "', should be larger than " ++ show minGasLimit
+    unless (blockDataGasLimit c >= minGasLimit flags_useTestnet)
+             $ fail $ "Block gasLimit is lower than minGasLimit: got '" ++ show (blockDataGasLimit c) ++ "', should be larger than " ++ show (minGasLimit flags_useTestnet)
     return ()
 
 checkValidity::Monad m=>Block->ContextM (m ())

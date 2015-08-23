@@ -94,16 +94,16 @@ addBlock isBeingCreated b@Block{blockBlockData=bd, blockBlockUncles=uncles} = do
       "Block will not be added now, but will be requested and added later"
     Just parentBlock -> do
       setStateDBStateRoot $ blockDataStateRoot $ blockBlockData parentBlock
-      s1 <- addToBalance (blockDataCoinbase bd) rewardBase
+      s1 <- addToBalance (blockDataCoinbase bd) $ rewardBase flags_useTestnet
       when (not s1) $ error "addToBalance failed even after a check in addBlock"
 
       forM_ uncles $ \uncle -> do
-        s2 <- addToBalance (blockDataCoinbase bd) (rewardBase `quot` 32)
+        s2 <- addToBalance (blockDataCoinbase bd) (rewardBase flags_useTestnet `quot` 32)
         when (not s2) $ error "addToBalance failed even after a check in addBlock"
         
         s3 <- addToBalance
               (blockDataCoinbase uncle)
-              ((rewardBase*(8+blockDataNumber uncle - blockDataNumber bd )) `quot` 8)
+              ((rewardBase flags_useTestnet * (8+blockDataNumber uncle - blockDataNumber bd )) `quot` 8)
         when (not s3) $ error "addToBalance failed even after a check in addBlock"
 
 
@@ -354,11 +354,16 @@ x ?! err = maybe (left err) return $ x
 
 replaceBestIfBetter::(BlockDataRefId, Block)->ContextM ()
 replaceBestIfBetter (blkDataId, b) = do
-  best <- getBestProcessedBlock 
-  if blockDataNumber (blockBlockData best) >= n
-    then return ()
-    else do
+  cachedBestProcessedBlock <- getCachedBestProcessedBlock
+  best <-
+      case cachedBestProcessedBlock of
+        Nothing -> getBestProcessedBlock
+        Just b -> return b
+
+  let n = blockDataNumber (blockBlockData b)
+
+  when (n > blockDataNumber (blockBlockData best)) $ do
     let oldStateRoot = blockDataStateRoot (blockBlockData best)
         newStateRoot = blockDataStateRoot (blockBlockData b)
     sqlDiff blkDataId n oldStateRoot newStateRoot
-  where n = blockDataNumber (blockBlockData b)
+    putCachedBestProcessedBlock b
