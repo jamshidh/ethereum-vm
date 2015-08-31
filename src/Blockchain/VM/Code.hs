@@ -24,8 +24,8 @@ showCode lineNumber c@(Code rom) = showHex lineNumber "" ++ " " ++ format (B.pac
         where
           (op, nextP) = getOperationAt c 0
 
-instance Pretty Code where
-    pretty = text . showCode 0
+formatCode::Code->String
+formatCode = showCode 0
 
 getValidJUMPDESTs::Code->[Word256]
 getValidJUMPDESTs (Code bytes) =

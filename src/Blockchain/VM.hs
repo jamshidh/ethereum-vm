@@ -37,6 +37,7 @@ import Blockchain.DB.HashDB
 import Blockchain.DB.ModifyStateDB
 import Blockchain.DB.StateDB
 import Blockchain.ExtWord
+import Blockchain.Format
 import Blockchain.Options
 import Blockchain.SHA
 import Blockchain.Util
@@ -760,7 +761,7 @@ runCodeFromStart::VMM ()
 runCodeFromStart = do
   env <- lift $ fmap environment get
 
-  when flags_debug $ liftIO $ putStrLn $ "running code: " ++ tab (CL.magenta ("\n" ++ show (pretty $ envCode env)))
+  when flags_debug $ liftIO $ putStrLn $ "running code: " ++ tab (CL.magenta ("\n" ++ showCode 0 (envCode env)))
 
   runCode 0
 

@@ -13,7 +13,6 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Functor
 import Data.Time
 import Data.Time.Clock.POSIX
-import Text.PrettyPrint.ANSI.Leijen hiding ((<$>))
 
 import Blockchain.VMContext
 import Blockchain.Data.AddressStateDB
@@ -82,7 +81,7 @@ checkParentChildValidity Block{blockBlockData=c} Block{blockBlockData=p} = do
     unless (blockDataGasLimit c >= blockDataGasLimit p - nextGasLimitDelta (blockDataGasLimit p))
              $ fail $ "Block gasLimit is too low: got '" ++ show (blockDataGasLimit c) ++ "', should be less than '" ++ show (blockDataGasLimit p -  nextGasLimitDelta (blockDataGasLimit p)) ++ "'"
     unless (blockDataGasLimit c >= minGasLimit flags_useTestnet)
-             $ fail $ "Block gasLimit is lower than minGasLimit: got '" ++ show (blockDataGasLimit c) ++ "', should be larger than " ++ show (minGasLimit flags_useTestnet)
+             $ fail $ "Block gasLimit is lower than minGasLimit: got '" ++ show (blockDataGasLimit c) ++ "', should be larger than " ++ show (minGasLimit flags_useTestnet::Integer)
     return ()
 
 checkValidity::Monad m=>Block->ContextM (m ())

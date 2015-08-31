@@ -9,7 +9,6 @@ import Control.Monad
 import Control.Monad.Trans
 import Text.PrettyPrint.ANSI.Leijen hiding ((<$>))
 
-import Blockchain.VMContext
 import Blockchain.Data.Address
 import Blockchain.Data.AddressStateDB
 import Blockchain.DB.HashDB
